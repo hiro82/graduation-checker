@@ -22,111 +22,107 @@ function App() {
   const needMajor = Math.max(80 - specializedTotal, 0);
   const needTotal = Math.max(124 - totalCredits, 0);
 
-  const liberalArtsOk = needLiberalArts === 0;
-  const englishOk = needEnglish === 0;
-  const scienceOk = needScience === 0;
-  const liberalArtsSumOk = needLiberalArtsTotal === 0;
-  const majorOk = needMajor === 0;
-  const totalOk = needTotal === 0;
-
   const graduationOk =
-    liberalArtsOk &&
-    englishOk &&
-    scienceOk &&
-    liberalArtsSumOk &&
-    majorOk &&
-    totalOk;
+    needLiberalArts === 0 &&
+    needEnglish === 0 &&
+    needScience === 0 &&
+    needLiberalArtsTotal === 0 &&
+    needMajor === 0 &&
+    needTotal === 0;
 
-  const renderStatus = (isOk, need) => {
+  const progress = Math.min((totalCredits / 124) * 100, 100);
+
+  const renderStatus = (title, current, need) => {
+    const isOk = need === 0;
     return (
-      <div style={{ marginBottom: "12px" }}>
-        <div>判定: {isOk ? "OK" : "不足"}</div>
-        <div>不足単位: {need}単位</div>
+      <div style={{ border: "1px solid #ddd", padding: "12px", borderRadius: "10px" }}>
+        <h3>{title}</h3>
+        <div>取得単位: {current}単位</div>
+        <div style={{ color: isOk ? "green" : "red" }}>
+          判定: {isOk ? "OK" : "不足"}
+        </div>
+        {!isOk && <div>あと {need} 単位必要</div>}
       </div>
     );
   };
 
+  const reset = () => {
+    setLiberalArts("");
+    setEnglish("");
+    setScienceLiberalArts("");
+    setMajor("");
+  };
+
   return (
-    <div style={{ maxWidth: "700px", margin: "40px auto", padding: "20px" }}>
-      <h1>卒業判定アプリ</h1>
+    <div style={{ maxWidth: "800px", margin: "40px auto", padding: "20px" }}>
+      <h1>🎓 卒業判定アプリ（改良版）</h1>
+
       <p>取得済み単位を入力してください</p>
 
       <div style={{ display: "grid", gap: "12px", marginTop: "20px" }}>
-        <label>
-          教養科目（12単位以上）
-          <br />
-          <input
-            type="number"
-            value={liberalArts}
-            onChange={(e) => setLiberalArts(e.target.value)}
-          />
-        </label>
+        <input
+          type="number"
+          placeholder="教養科目 (12以上)"
+          value={liberalArts}
+          onChange={(e) => setLiberalArts(e.target.value)}
+        />
 
-        <label>
-          英語科目（8単位）
-          <br />
-          <input
-            type="number"
-            value={english}
-            onChange={(e) => setEnglish(e.target.value)}
-          />
-        </label>
+        <input
+          type="number"
+          placeholder="英語科目 (8)"
+          value={english}
+          onChange={(e) => setEnglish(e.target.value)}
+        />
 
-        <label>
-          理系教養科目（12単位以上）
-          <br />
-          <input
-            type="number"
-            value={scienceLiberalArts}
-            onChange={(e) => setScienceLiberalArts(e.target.value)}
-          />
-        </label>
+        <input
+          type="number"
+          placeholder="理系教養 (12以上)"
+          value={scienceLiberalArts}
+          onChange={(e) => setScienceLiberalArts(e.target.value)}
+        />
 
-        <label>
-          自学科専門科目（80単位以上）
-          <br />
-          <input
-            type="number"
-            value={major}
-            onChange={(e) => setMajor(e.target.value)}
-          />
-        </label>
+        <input
+          type="number"
+          placeholder="専門科目 (80以上)"
+          value={major}
+          onChange={(e) => setMajor(e.target.value)}
+        />
+      </div>
+
+      <button onClick={reset} style={{ marginTop: "10px" }}>
+        リセット
+      </button>
+
+      <hr style={{ margin: "24px 0" }} />
+
+      <h2>進捗</h2>
+      <div style={{ background: "#eee", borderRadius: "10px", overflow: "hidden" }}>
+        <div
+          style={{
+            width: `${progress}%`,
+            background: "green",
+            color: "white",
+            padding: "5px",
+            textAlign: "center",
+          }}
+        >
+          {progress.toFixed(1)}%
+        </div>
       </div>
 
       <hr style={{ margin: "24px 0" }} />
 
-      <h2>判定結果</h2>
-
-      <div>
-        <h3>教養科目</h3>
-        <div>取得単位: {la}単位</div>
-        {renderStatus(liberalArtsOk, needLiberalArts)}
-
-        <h3>英語科目</h3>
-        <div>取得単位: {en}単位</div>
-        {renderStatus(englishOk, needEnglish)}
-
-        <h3>理系教養科目</h3>
-        <div>取得単位: {sc}単位</div>
-        {renderStatus(scienceOk, needScience)}
-
-        <h3>教養系合計</h3>
-        <div>取得単位: {liberalArtsTotal}単位</div>
-        {renderStatus(liberalArtsSumOk, needLiberalArtsTotal)}
-
-        <h3>専門系合計</h3>
-        <div>取得単位: {specializedTotal}単位</div>
-        {renderStatus(majorOk, needMajor)}
-
-        <h3>総取得単位</h3>
-        <div>取得単位: {totalCredits}単位</div>
-        {renderStatus(totalOk, needTotal)}
+      <div style={{ display: "grid", gap: "16px" }}>
+        {renderStatus("教養科目", la, needLiberalArts)}
+        {renderStatus("英語科目", en, needEnglish)}
+        {renderStatus("理系教養", sc, needScience)}
+        {renderStatus("教養合計", liberalArtsTotal, needLiberalArtsTotal)}
+        {renderStatus("専門", specializedTotal, needMajor)}
+        {renderStatus("総単位", totalCredits, needTotal)}
       </div>
 
-      <h2 style={{ color: graduationOk ? "green" : "red" }}>
-        {graduationOk
-          ? "卒業要件を満たしています"
-          : "卒業要件を満たしていません"}
+      <h2 style={{ color: graduationOk ? "green" : "red", marginTop: "20px" }}>
+        {graduationOk ? "🎉 卒業可能！" : "⚠️ まだ卒業できません"}
       </h2>
     </div>
   );
