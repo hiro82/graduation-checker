@@ -1,10 +1,12 @@
 import { useState } from "react";
+import Tesseract from "tesseract.js";
 
 function App() {
   const [liberalArts, setLiberalArts] = useState("");
   const [english, setEnglish] = useState("");
   const [scienceLiberalArts, setScienceLiberalArts] = useState("");
   const [major, setMajor] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const la = Number(liberalArts) || 0;
   const en = Number(english) || 0;
@@ -32,18 +34,59 @@ function App() {
 
   const progress = Math.min((totalCredits / 124) * 100, 100);
 
-  const renderStatus = (title, current, need) => {
-    const isOk = need === 0;
-    return (
-      <div style={{ border: "1px solid #ddd", padding: "12px", borderRadius: "10px" }}>
-        <h3>{title}</h3>
-        <div>取得単位: {current}単位</div>
-        <div style={{ color: isOk ? "green" : "red" }}>
-          判定: {isOk ? "OK" : "不足"}
-        </div>
-        {!isOk && <div>あと {need} 単位必要</div>}
-      </div>
-    );
+  // 数字抽出
+  const extractNumber = (text) => {
+    const match = text.match(/\d+/);
+    return match ? Number(match[0]) : 0;
+  };
+
+  // OCR結果を解析
+  const parseCredits = (text) => {
+    let la = 0;
+    let en = 0;
+    let sc = 0;
+    let ma = 0;
+
+    const lines = text.split("\n");
+
+    lines.forEach((line) => {
+      if (line.includes("英語")) {
+        en += extractNumber(line);
+      } else if (line.includes("物理") || line.includes("数学")) {
+        sc += extractNumber(line);
+      } else if (line.includes("プログラミング") || line.includes("専門")) {
+        ma += extractNumber(line);
+      } else {
+        la += extractNumber(line);
+      }
+    });
+
+    setEnglish(en);
+    setScienceLiberalArts(sc);
+    setMajor(ma);
+    setLiberalArts(la);
+  };
+
+  // 画像アップロード
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+
+    try {
+      const result = await Tesseract.recognize(file, "jpn");
+      const text = result.data.text;
+
+      console.log("OCR結果:", text);
+
+      parseCredits(text);
+    } catch (err) {
+      console.error(err);
+      alert("読み取り失敗");
+    }
+
+    setLoading(false);
   };
 
   const reset = () => {
@@ -55,74 +98,45 @@ function App() {
 
   return (
     <div style={{ maxWidth: "800px", margin: "40px auto", padding: "20px" }}>
-      <h1>🎓 卒業判定アプリ（改良版）</h1>
+      <h1>🎓 卒業判定アプリ（OCR対応）</h1>
 
-      <p>取得済み単位を入力してください</p>
+      <input type="file" accept="image/*" onChange={handleImageUpload} />
+
+      {loading && <p>📷 解析中...</p>}
 
       <div style={{ display: "grid", gap: "12px", marginTop: "20px" }}>
         <input
           type="number"
-          placeholder="教養科目 (12以上)"
+          placeholder="教養"
           value={liberalArts}
           onChange={(e) => setLiberalArts(e.target.value)}
         />
-
         <input
           type="number"
-          placeholder="英語科目 (8)"
+          placeholder="英語"
           value={english}
           onChange={(e) => setEnglish(e.target.value)}
         />
-
         <input
           type="number"
-          placeholder="理系教養 (12以上)"
+          placeholder="理系教養"
           value={scienceLiberalArts}
           onChange={(e) => setScienceLiberalArts(e.target.value)}
         />
-
         <input
           type="number"
-          placeholder="専門科目 (80以上)"
+          placeholder="専門"
           value={major}
           onChange={(e) => setMajor(e.target.value)}
         />
       </div>
 
-      <button onClick={reset} style={{ marginTop: "10px" }}>
-        リセット
-      </button>
+      <button onClick={reset}>リセット</button>
 
-      <hr style={{ margin: "24px 0" }} />
+      <h2>進捗: {progress.toFixed(1)}%</h2>
 
-      <h2>進捗</h2>
-      <div style={{ background: "#eee", borderRadius: "10px", overflow: "hidden" }}>
-        <div
-          style={{
-            width: `${progress}%`,
-            background: "green",
-            color: "white",
-            padding: "5px",
-            textAlign: "center",
-          }}
-        >
-          {progress.toFixed(1)}%
-        </div>
-      </div>
-
-      <hr style={{ margin: "24px 0" }} />
-
-      <div style={{ display: "grid", gap: "16px" }}>
-        {renderStatus("教養科目", la, needLiberalArts)}
-        {renderStatus("英語科目", en, needEnglish)}
-        {renderStatus("理系教養", sc, needScience)}
-        {renderStatus("教養合計", liberalArtsTotal, needLiberalArtsTotal)}
-        {renderStatus("専門", specializedTotal, needMajor)}
-        {renderStatus("総単位", totalCredits, needTotal)}
-      </div>
-
-      <h2 style={{ color: graduationOk ? "green" : "red", marginTop: "20px" }}>
-        {graduationOk ? "🎉 卒業可能！" : "⚠️ まだ卒業できません"}
+      <h2 style={{ color: graduationOk ? "green" : "red" }}>
+        {graduationOk ? "卒業OK" : "まだ不足"}
       </h2>
     </div>
   );
