@@ -1,5 +1,9 @@
 import { useState } from "react";
+<<<<<<< HEAD
 import Tesseract from "tesseract.js";
+=======
+import PDFUploader from "./components/PDFUploader";
+>>>>>>> PDF追加
 
 function App() {
   const [liberalArts, setLiberalArts] = useState("");
@@ -7,6 +11,8 @@ function App() {
   const [scienceLiberalArts, setScienceLiberalArts] = useState("");
   const [major, setMajor] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [ocrText, setOcrText] = useState("");
 
   const la = Number(liberalArts) || 0;
   const en = Number(english) || 0;
@@ -40,6 +46,7 @@ function App() {
     return match ? Number(match[0]) : 0;
   };
 
+<<<<<<< HEAD
   // OCR結果を解析
   const parseCredits = (text) => {
     let la = 0;
@@ -73,6 +80,71 @@ function App() {
     if (!file) return;
 
     setLoading(true);
+=======
+  return (
+    <div style={{ maxWidth: "700px", margin: "40px auto", padding: "20px" }}>
+      <h1>卒業判定アプリ</h1>
+
+<h2>PDF読み込み</h2>
+<PDFUploader onTextExtracted={setOcrText} />
+
+<pre
+  style={{
+    whiteSpace: "pre-wrap",
+    background: "#f5f5f5",
+    padding: "12px",
+    borderRadius: "8px",
+  }}
+>
+  {ocrText}
+</pre>
+
+      <p>取得済み単位を入力してください</p>
+
+      <PDFUploader />
+
+      <div style={{ display: "grid", gap: "12px", marginTop: "20px" }}>
+        <label>
+          教養科目（12単位以上）
+          <br />
+          <input
+            type="number"
+            value={liberalArts}
+            onChange={(e) => setLiberalArts(e.target.value)}
+          />
+        </label>
+
+        <label>
+          英語科目（8単位）
+          <br />
+          <input
+            type="number"
+            value={english}
+            onChange={(e) => setEnglish(e.target.value)}
+          />
+        </label>
+
+        <label>
+          理系教養科目（12単位以上）
+          <br />
+          <input
+            type="number"
+            value={scienceLiberalArts}
+            onChange={(e) => setScienceLiberalArts(e.target.value)}
+          />
+        </label>
+
+        <label>
+          自学科専門科目（80単位以上）
+          <br />
+          <input
+            type="number"
+            value={major}
+            onChange={(e) => setMajor(e.target.value)}
+          />
+        </label>
+      </div>
+>>>>>>> PDF追加
 
     try {
       const result = await Tesseract.recognize(file, "jpn");
