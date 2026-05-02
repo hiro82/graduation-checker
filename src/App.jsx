@@ -1,17 +1,11 @@
 import { useState } from "react";
-<<<<<<< HEAD
-import Tesseract from "tesseract.js";
-=======
 import PDFUploader from "./components/PDFUploader";
->>>>>>> PDF追加
 
 function App() {
   const [liberalArts, setLiberalArts] = useState("");
   const [english, setEnglish] = useState("");
   const [scienceLiberalArts, setScienceLiberalArts] = useState("");
   const [major, setMajor] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const [ocrText, setOcrText] = useState("");
 
   const la = Number(liberalArts) || 0;
@@ -38,70 +32,42 @@ function App() {
     needMajor === 0 &&
     needTotal === 0;
 
-  const progress = Math.min((totalCredits / 124) * 100, 100);
+  const renderStatus = (need) => (
+    <div style={{ marginBottom: "12px" }}>
+      <div>判定: {need === 0 ? "OK" : "不足"}</div>
+      <div>不足単位: {need}単位</div>
+    </div>
+  );
 
-  // 数字抽出
-  const extractNumber = (text) => {
-    const match = text.match(/\d+/);
-    return match ? Number(match[0]) : 0;
+  const reset = () => {
+    setLiberalArts("");
+    setEnglish("");
+    setScienceLiberalArts("");
+    setMajor("");
+    setOcrText("");
   };
 
-<<<<<<< HEAD
-  // OCR結果を解析
-  const parseCredits = (text) => {
-    let la = 0;
-    let en = 0;
-    let sc = 0;
-    let ma = 0;
-
-    const lines = text.split("\n");
-
-    lines.forEach((line) => {
-      if (line.includes("英語")) {
-        en += extractNumber(line);
-      } else if (line.includes("物理") || line.includes("数学")) {
-        sc += extractNumber(line);
-      } else if (line.includes("プログラミング") || line.includes("専門")) {
-        ma += extractNumber(line);
-      } else {
-        la += extractNumber(line);
-      }
-    });
-
-    setEnglish(en);
-    setScienceLiberalArts(sc);
-    setMajor(ma);
-    setLiberalArts(la);
-  };
-
-  // 画像アップロード
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setLoading(true);
-=======
   return (
-    <div style={{ maxWidth: "700px", margin: "40px auto", padding: "20px" }}>
+    <div style={{ maxWidth: "800px", margin: "40px auto", padding: "20px" }}>
       <h1>卒業判定アプリ</h1>
 
-<h2>PDF読み込み</h2>
-<PDFUploader onTextExtracted={setOcrText} />
+      <h2>PDF読み込み</h2>
+      <PDFUploader onTextExtracted={setOcrText} />
 
-<pre
-  style={{
-    whiteSpace: "pre-wrap",
-    background: "#f5f5f5",
-    padding: "12px",
-    borderRadius: "8px",
-  }}
->
-  {ocrText}
-</pre>
+      <pre
+        style={{
+          whiteSpace: "pre-wrap",
+          background: "#f5f5f5",
+          padding: "12px",
+          borderRadius: "8px",
+          maxHeight: "250px",
+          overflow: "auto",
+        }}
+      >
+        {ocrText}
+      </pre>
 
       <p>取得済み単位を入力してください</p>
-
-      <PDFUploader />
 
       <div style={{ display: "grid", gap: "12px", marginTop: "20px" }}>
         <label>
@@ -144,71 +110,43 @@ function App() {
           />
         </label>
       </div>
->>>>>>> PDF追加
 
-    try {
-      const result = await Tesseract.recognize(file, "jpn");
-      const text = result.data.text;
+      <button onClick={reset} style={{ marginTop: "16px" }}>
+        リセット
+      </button>
 
-      console.log("OCR結果:", text);
+      <hr style={{ margin: "24px 0" }} />
 
-      parseCredits(text);
-    } catch (err) {
-      console.error(err);
-      alert("読み取り失敗");
-    }
+      <h2>判定結果</h2>
 
-    setLoading(false);
-  };
+      <h3>教養科目</h3>
+      <div>取得単位: {la}単位</div>
+      {renderStatus(needLiberalArts)}
 
-  const reset = () => {
-    setLiberalArts("");
-    setEnglish("");
-    setScienceLiberalArts("");
-    setMajor("");
-  };
+      <h3>英語科目</h3>
+      <div>取得単位: {en}単位</div>
+      {renderStatus(needEnglish)}
 
-  return (
-    <div style={{ maxWidth: "800px", margin: "40px auto", padding: "20px" }}>
-      <h1>🎓 卒業判定アプリ（OCR対応）</h1>
+      <h3>理系教養科目</h3>
+      <div>取得単位: {sc}単位</div>
+      {renderStatus(needScience)}
 
-      <input type="file" accept="image/*" onChange={handleImageUpload} />
+      <h3>教養系合計</h3>
+      <div>取得単位: {liberalArtsTotal}単位</div>
+      {renderStatus(needLiberalArtsTotal)}
 
-      {loading && <p>📷 解析中...</p>}
+      <h3>専門系合計</h3>
+      <div>取得単位: {specializedTotal}単位</div>
+      {renderStatus(needMajor)}
 
-      <div style={{ display: "grid", gap: "12px", marginTop: "20px" }}>
-        <input
-          type="number"
-          placeholder="教養"
-          value={liberalArts}
-          onChange={(e) => setLiberalArts(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="英語"
-          value={english}
-          onChange={(e) => setEnglish(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="理系教養"
-          value={scienceLiberalArts}
-          onChange={(e) => setScienceLiberalArts(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="専門"
-          value={major}
-          onChange={(e) => setMajor(e.target.value)}
-        />
-      </div>
-
-      <button onClick={reset}>リセット</button>
-
-      <h2>進捗: {progress.toFixed(1)}%</h2>
+      <h3>総取得単位</h3>
+      <div>取得単位: {totalCredits}単位</div>
+      {renderStatus(needTotal)}
 
       <h2 style={{ color: graduationOk ? "green" : "red" }}>
-        {graduationOk ? "卒業OK" : "まだ不足"}
+        {graduationOk
+          ? "卒業要件を満たしています"
+          : "卒業要件を満たしていません"}
       </h2>
     </div>
   );
